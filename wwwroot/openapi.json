@@ -1,0 +1,839 @@
+  {
+  "openapi": "3.0.0",
+  "info": {
+    "description": "This is the documentation of the <tada!> services.",
+    "version": "0.0.1",
+    "title": "Tada-Service",
+    "contact": {
+      "email": "online@duijvelshoff.com"
+    },
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "tags": [
+    {
+      "name": "Accounts",
+      "description": "Operations about (bunq) current accounts."
+    },
+    {
+      "name": "Connects",
+      "description": "Operations about the connected services."
+    },
+    {
+      "name": "Payments",
+      "description": "Operations to create payments."
+    },
+    {
+      "name": "Requests",
+      "description": "Operations to create payment requests."
+    },
+    {
+      "name": "Rules",
+      "description": "Operations about the automation rules."
+    }
+  ],
+  "paths": {
+    "/accounts/add": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "summary": "Create a connect draft and get the qrcode.",
+        "operationId": "addAccount",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "draftid": {
+                          "type": "integer"
+                        },
+                        "qrcode": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ]
+      }
+    },
+    "/accounts/list": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "summary": "List all (bunq) current accounts of the user.",
+        "operationId": "listAccounts",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "accounts": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Account"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ]
+      }
+    },
+    "/accounts/status": {
+      "post": {
+        "tags": [
+          "Accounts"
+        ],
+        "summary": "Check the status of a created connect.",
+        "operationId": "checkAddStatus",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "draftid": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Account"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ]
+      }
+    },
+    "/connects/add": {
+      "post": {
+        "tags": [
+          "Connects"
+        ],
+        "summary": "Submit a validated connect.",
+        "operationId": "addConnect",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "connect": {
+                        "$ref": "#/components/schemas/Connect"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "connect": {
+                          "$ref": "#/components/schemas/Connect"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ]
+      }
+    },
+    "/connects/list": {
+      "get": {
+        "tags": [
+          "Connects"
+        ],
+        "summary": "List all connects of the user.",
+        "operationId": "listConnects",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "connects": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Connect"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ]
+      }
+    },
+    "/connects/delete": {
+      "post": {
+        "tags": [
+          "Connects"
+        ],
+        "summary": "Delete a connect.",
+        "operationId": "deleteConnect",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "connect": {
+                        "$ref": "#/components/schemas/Connect"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "connect": {
+                          "$ref": "#/components/schemas/Connect"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ]
+      }
+    },
+    "/payment": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Make a payment.",
+        "operationId": "makePayment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "$ref": "#/components/schemas/Payment"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "paymentid": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ]
+      }
+    },
+    "/request": {
+      "post": {
+        "tags": [
+          "Requests"
+        ],
+        "summary": "Make a payment request.",
+        "operationId": "createRequest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "$ref": "#/components/schemas/Request"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "requestid": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ]
+      }
+    },
+    "/rules/add": {
+      "post": {
+        "tags": [
+          "Rules"
+        ],
+        "summary": "Add new rule.",
+        "operationId": "addRule",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "$ref": "#/components/schemas/Rule"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ruleid": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ]
+      }
+    },
+    "/rules/delete": {
+      "post": {
+        "tags": [
+          "Rules"
+        ],
+        "summary": "Delete a rule.",
+        "operationId": "deleteRule",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "rule": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ruleid": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ]
+      }
+    },
+    "/rules/list": {
+      "get": {
+        "tags": [
+          "Rules"
+        ],
+        "summary": "List all the rules of the user.",
+        "operationId": "listRules",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "rules": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Rule"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ]
+      }
+    },
+    "/rules/update": {
+      "post": {
+        "tags": [
+          "Rules"
+        ],
+        "summary": "Update a rule.",
+        "operationId": "updateRule",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "$ref": "#/components/schemas/Rule"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ruleid": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ]
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "Find out more about Swagger",
+    "url": "http://swagger.io"
+  },
+  "servers": [
+    {
+      "url": "https://service.dev.tada.red/api"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "OAuth2": {
+        "type": "oauth2",
+        "description": "For more information, see https://developers.getbase.com/docs/rest/articles/oauth2/requests",
+        "flows": {
+          "implicit": {
+            "authorizationUrl": "https://login.microsoftonline.com/duijvelshoff.com/oauth2/authorize",
+            "scopes": {}
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Account": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "iban": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "access_rights": {
+            "type": "string"
+          }
+        }
+      },
+      "Amount": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "Condition": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "Connect": {
+        "type": "object",
+        "properties": {
+          "guid": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "displayname": {
+            "type": "string"
+          },
+          "externalid": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "access_token": {
+            "type": "string"
+          }
+        }
+      },
+      "Description": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "Email": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "object",
+            "properties": {
+              "recipient": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Origin": {
+        "type": "object",
+        "properties": {
+          "origin": {
+            "type": "object",
+            "properties": {
+              "iban": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Recipient": {
+        "type": "object",
+        "properties": {
+          "recipient": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "iban": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Payment": {
+        "type": "object",
+        "properties": {
+          "payment": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Origin"
+              },
+              {
+                "$ref": "#/components/schemas/Recipient"
+              },
+              {
+                "$ref": "#/components/schemas/Amount"
+              },
+              {
+                "$ref": "#/components/schemas/Description"
+              }
+            ]
+          }
+        }
+      },
+      "Request": {
+        "type": "object",
+        "properties": {
+          "request": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Origin"
+              },
+              {
+                "$ref": "#/components/schemas/Recipient"
+              },
+              {
+                "$ref": "#/components/schemas/Amount"
+              },
+              {
+                "$ref": "#/components/schemas/Description"
+              }
+            ]
+          }
+        }
+      },
+      "Rule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/Condition"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Email"
+                },
+                {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
