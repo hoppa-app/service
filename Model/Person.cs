@@ -16,7 +16,9 @@ namespace hoppa.Service.Model
         [Key]
         public string Guid { get; set; } = new Guid().ToString();
 
-        public string DisplayName { get; set; } = string.Empty;                       
+        public string DisplayName { get; set; } = string.Empty;
+
+        public string EmailAddress { get; set; } = string.Empty;          
 
         [BsonDateTimeOptions]
         public DateTime UpdatedOn { get; set; } = DateTime.Now;

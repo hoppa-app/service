@@ -32,6 +32,7 @@ namespace hoppa.Service.Controllers
                 {
                     Guid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9",
                     DisplayName = "Nick Duijvelshoff",
+                    EmailAddress = "nick@duijvelshoff.com",
                     UpdatedOn = DateTime.Now,
                     Connections = new List<Connection>()
                     {
@@ -71,15 +72,11 @@ namespace hoppa.Service.Controllers
                             Actions = new List<Model.Action>(){
                                 new Mail(){
                                     Type = "mail",
-                                    Recipient = "online@hoppa.app"
+                                    EmailAddress = "online@hoppa.app"
                                 },
                                 new Payment(){
                                     Type = "payment",
-                                    Account = new Account(){
-                                        Type = "bunq",
-                                        IBAN = "NL87BUNQ9900104358",
-                                        AccessRights = "read/write"
-                                    },
+                                    Account = "000025a7-0000-0000-0000-000000000000",
                                     Description = "Here do you have some money!",
                                     Recipient = new Pointer("EMAIL", "nick@hoppa.app", "Nick Duijvelshoff"),
                                     Amount = new Amount("10.00", "EUR")

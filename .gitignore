@@ -3,7 +3,7 @@
 
 #Config
 bunq.conf
-appsettings.Development.json
+appsettings.json
 
 #Deploy
 Properties/PublishProfiles/
@@ -46,3 +46,5 @@ Thumbs.db
 
 # dotCover
 *.dotCover
+appsettings.json
+appsettings.json

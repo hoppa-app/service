@@ -1,22 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace hoppa.Service.Model
 {
-    public class Action
+    public abstract class Action
     {
         public string Type { get; set; }
     }
 
     public class Mail : Action
     {
-        public string Recipient { get; set; }
+        public string EmailAddress { get; set; }
     }
 
     public class Payment : Action
     {
-        public Account Account { get; set; }
+        public string Account { get; set; }
+
         public Amount Amount { get; set; }
         public Pointer Recipient { get; set; }
 

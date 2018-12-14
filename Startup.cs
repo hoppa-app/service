@@ -94,11 +94,12 @@ namespace hoppa.Service
         {
             ODataConventionModelBuilder builder = new ODataConventionModelBuilder();
 
-            builder.EntitySet<Person>("People"); //Work in progress
-            builder.Singleton<Person>("Person"); //Work in progress
-            builder.EntitySet<Account>("Accounts"); //Work in progress
-            builder.EntitySet<Connection>("Connections"); //Work in progress
-            builder.EntitySet<Rule>("Rules"); //Work in progress
+            builder.EntitySet<Person>("People");
+            builder.Singleton<Person>("Person");
+            builder.EntitySet<Account>("Accounts");
+            builder.Singleton<Account>("Account");
+            builder.EntitySet<Connection>("Connections");
+            builder.EntitySet<Rule>("Rules");          
     
             return builder.GetEdmModel();
         }

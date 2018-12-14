@@ -12,7 +12,7 @@ using hoppa.Service.Model;
 
 namespace hoppa.Service.Controllers
 {
-    //[Authorize]
+    [Authorize]
     public class PeopleController : ODataController
     {
         private readonly IPersonRepository _personRepository;
@@ -61,8 +61,8 @@ namespace hoppa.Service.Controllers
         [EnableQuery]
         public IActionResult Post([FromBody] Person person)
         {
-            //string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
-            string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
+            string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
+            //string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
             
             person.Guid = userGuid;
 
@@ -92,8 +92,8 @@ namespace hoppa.Service.Controllers
         [EnableQuery]
         public async Task<Person> Get()
         {
-            //string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
-            string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
+            string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
+            //string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
 
             var person = await _personRepository.GetPerson(userGuid);
 
@@ -112,8 +112,8 @@ namespace hoppa.Service.Controllers
         [EnableQuery]
         public IActionResult Patch([FromBody] Person person)
         {
-            //string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
-            string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
+            string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
+            //string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
 
             _personRepository.UpdatePerson(userGuid, person.DisplayName);
 

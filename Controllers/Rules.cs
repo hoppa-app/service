@@ -12,7 +12,7 @@ using hoppa.Service.Model;
 
 namespace hoppa.Service.Controllers
 {
-    //[Authorize]
+    [Authorize]
     public class RulesController : ODataController
     {
         private readonly IPersonRepository _personRepository;
@@ -25,8 +25,8 @@ namespace hoppa.Service.Controllers
         [EnableQuery]
         public async Task<IEnumerable<Rule>> Get()
         {
-            //string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
-            string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
+            string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
+            //string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
 
             var person = await _personRepository.GetPerson(userGuid);
             

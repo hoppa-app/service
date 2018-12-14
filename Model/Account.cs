@@ -15,9 +15,12 @@ namespace hoppa.Service.Model
 {
     public class Account
     {
+
+        [Key]
+        public string Guid { get; set; } = new Guid().ToString();
         [Required]
         public string Type { get; set; }
-        [Key]
+        [Required]
         public string IBAN { get; set; } = string.Empty;
         [Required]
         public string AccessRights { get; set; }
@@ -27,8 +30,6 @@ namespace hoppa.Service.Model
 
     public class OtherAccount : Account
     {
-        [Required]
-        public string Guid { get; set; } = new Guid().ToString();
         [Required]
         public string OwnerName { get; set; } = string.Empty;
 
@@ -69,6 +70,7 @@ namespace hoppa.Service.Model
                                 {
                                     var account = new BunqAccount
                                     {
+                                        Guid = new Guid(((int)monetaryAccount.Id), 0, 0, new byte[8]).ToString(),
                                         Type = "bunq",
                                         IBAN = alias.Value,
                                         AccountId = (int)monetaryAccount.Id,
