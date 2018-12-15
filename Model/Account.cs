@@ -5,7 +5,6 @@ namespace hoppa.Service.Model
 {
     public class Account
     {
-
         [Key]
         public string Guid { get; set; } = new Guid().ToString();
         [Required]
@@ -22,6 +21,5 @@ namespace hoppa.Service.Model
     {
         [Required]
         public string OwnerName { get; set; } = string.Empty;
-
     }
 }

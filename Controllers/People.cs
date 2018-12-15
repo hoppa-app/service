@@ -92,6 +92,7 @@ namespace hoppa.Service.Controllers
         }
     }
 
+    [Authorize]
     public class PersonController : ODataController
     {
         private readonly IPersonRepository _personRepository;
@@ -108,7 +109,7 @@ namespace hoppa.Service.Controllers
             //string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
 
             var person = await _personRepository.GetPerson(userGuid);
-
+        
             if(person.Connections != null)
             {
                 // Handle bunq accounts

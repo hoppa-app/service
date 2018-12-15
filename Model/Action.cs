@@ -1,6 +1,6 @@
 namespace hoppa.Service.Model
 {
-    public abstract class Action
+    public class Action
     {
         public string Type { get; set; }
     }
