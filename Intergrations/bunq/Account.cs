@@ -35,9 +35,36 @@ namespace hoppa.Service.Intergrations.bunq
                     var apiContext = ApiContext.FromJson(bunqConnection.Parameters["bunqContext"].ToString());
                     BunqContext.LoadApiContext(apiContext);
 
-                    var allMonetaryAccounts = MonetaryAccountBank.List().Value;
+                    var allPersonalMonetaryAccounts = MonetaryAccountBank.List().Value;
 
-                    foreach (var monetaryAccount in allMonetaryAccounts)
+                    foreach (var monetaryAccount in allPersonalMonetaryAccounts)
+                    {
+                        if (monetaryAccount.Status == "ACTIVE")
+                        {
+                            foreach (var alias in monetaryAccount.Alias)
+                            {
+                                if (ibanRegex.IsMatch(alias.Value))
+                                {
+                                    var account = new BunqAccount
+                                    {
+                                        Guid = new Guid(((int)monetaryAccount.Id), 0, 0, new byte[8]).ToString(),
+                                        Type = "bunq",
+                                        IBAN = alias.Value,
+                                        AccountId = (int)monetaryAccount.Id,
+                                        OwnerId = (int)monetaryAccount.UserId,
+                                        Balance = (double)((monetaryAccount.Balance != null) ? Double.Parse(monetaryAccount.Balance.Value) : 0),
+                                        Description = monetaryAccount.Description,
+                                        AccessRights = (monetaryAccount.Balance != null) ? "read/write" : "read-only",
+                                    };
+                                    bunqAccounts.Add(account);
+                                }
+                            }
+                        }
+                    }
+                    
+                    var allJointMonetaryAccounts = MonetaryAccountJoint.List().Value;
+
+                    foreach (var monetaryAccount in allJointMonetaryAccounts)
                     {
                         if (monetaryAccount.Status == "ACTIVE")
                         {
