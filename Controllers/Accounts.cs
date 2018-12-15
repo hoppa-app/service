@@ -9,6 +9,7 @@ using System.Collections.Generic;
 
 using hoppa.Service.Interfaces;
 using hoppa.Service.Model;
+using hoppa.Service.Intergrations.bunq;
 
 namespace hoppa.Service.Controllers
 {
@@ -30,18 +31,16 @@ namespace hoppa.Service.Controllers
             
             var person = await _personRepository.GetPerson(userGuid);
             
-            List<Account> allAccounts = new List<Account>();
-            allAccounts.AddRange(person.Accounts);
-            allAccounts.AddRange(BunqAccount.GetAccounts(person));
-
-            if(allAccounts != null)
+            if(person.Connections != null)
             {
-                return allAccounts;
+                // Handle bunq accounts
+                if(person.Connections.FirstOrDefault(c => c.Type == "bunq") != null)
+                {
+                    person.Accounts.AddRange(BunqAccount.GetAccounts(person));
+                }
             }
-            else
-            {
-                return new List<Account>();
-            }
+            
+            return person.Accounts;
         }
 
         [EnableQuery]
@@ -52,13 +51,13 @@ namespace hoppa.Service.Controllers
             
             var person = await _personRepository.GetPerson(userGuid);
             
-            try
+            if(person.Connections != null)
             {
-                person.Accounts.AddRange(BunqAccount.GetAccounts(person));
-            }
-            catch
-            {
-
+                // Handle bunq accounts
+                if(person.Connections.FirstOrDefault(c => c.Type == "bunq") != null)
+                {
+                    person.Accounts.AddRange(BunqAccount.GetAccounts(person));
+                }
             }
 
             var account = person.Accounts.FirstOrDefault(a => a.Guid == key);

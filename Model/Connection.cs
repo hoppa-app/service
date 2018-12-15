@@ -15,5 +15,7 @@ namespace hoppa.Service.Model
         public int ExternalId { get; set; } = 0;
         public string UserName { get; set; }
         public string AccessToken { get; set; }
+
+        public IDictionary<string, object> Parameters { get; set; }  
     }
 }

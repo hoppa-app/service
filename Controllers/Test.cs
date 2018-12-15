@@ -34,22 +34,6 @@ namespace hoppa.Service.Controllers
                     DisplayName = "Nick Duijvelshoff",
                     EmailAddress = "nick@duijvelshoff.com",
                     UpdatedOn = DateTime.Now,
-                    Connections = new List<Connection>()
-                    {
-                        new Connection(){
-                            Guid = "b3fa0f31-2bb3-4ef7-8d49-3d01df6f8291",
-                            Type = "splitwise",
-                            DisplayName = "Nick Duijvelshoff",
-                            ExternalId = 14981522,
-                            UserName = "nick@duijvelshoff.com",
-                            AccessToken = "tej9yagoo8uth8iecohc9dohD9Eiphaivevie7Bo"
-                        },
-                        new Connection(){
-                            Guid = "3f38f753-4371-4a7a-b788-55251c446da8",
-                            Type = "bunq",
-                            ExternalId = 6459
-                        }
-                    },
                     Accounts = new List<Account>()
                     {
                         new OtherAccount(){

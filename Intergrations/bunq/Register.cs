@@ -1,15 +1,19 @@
-﻿using Bunq.Sdk.Context;
+﻿using System;
+using Bunq.Sdk.Context;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
 
+using hoppa.Service;
+
 namespace hoppa.Service.Intergrations.bunq
 {
-    public class Connection
+    public class Register
     {
-        public static void Register(IHostingEnvironment env, string apiKey)        
+        public string bunqContext { get; }
+        public Register(IHostingEnvironment env, string apiKey)       
         {
             if (env.IsDevelopment())
             {
@@ -24,7 +28,7 @@ namespace hoppa.Service.Intergrations.bunq
                     currentIp
                 };
                 var apiContextSetup = ApiContext.Create(ApiEnvironmentType.SANDBOX, apiKey, "hoppa", DevelopmentIPs);
-                apiContextSetup.Save();
+                bunqContext = apiContextSetup.ToJson();
             }
             else
             {
@@ -36,16 +40,9 @@ namespace hoppa.Service.Intergrations.bunq
                     "52.166.73.59"
                 };
 
-                var apiContextSetup = ApiContext.Create(ApiEnvironmentType.SANDBOX, apiKey, "hoppa", ServicePlanIPs);
-                apiContextSetup.Save();
+                var apiContextSetup = ApiContext.Create(ApiEnvironmentType.PRODUCTION, apiKey, "hoppa", ServicePlanIPs);
+                bunqContext = apiContextSetup.ToJson();
             }
-        }
-
-        public static void Initialize()
-        {
-            var apiContext = ApiContext.Restore();
-
-            BunqContext.LoadApiContext(apiContext);
         }
     }
 }

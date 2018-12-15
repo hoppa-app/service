@@ -3,12 +3,12 @@ using System.Linq;
 using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
 using hoppa.Service.Interfaces;
 using hoppa.Service.Model;
+using hoppa.Service.Intergrations.bunq;
 
 namespace hoppa.Service.Controllers
 {
@@ -28,13 +28,19 @@ namespace hoppa.Service.Controllers
             var people = await _personRepository.GetAllPeople();
             foreach(Person person in people)
             {
-                try
+                if(person.Connections != null)
                 {
-                    person.Accounts.AddRange(BunqAccount.GetAccounts(person));
-                }
-                catch
-                {
-
+                    // Handle bunq accounts
+                    if(person.Connections.FirstOrDefault(c => c.Type == "bunq") != null)
+                    {
+                        person.Accounts.AddRange(BunqAccount.GetAccounts(person));
+                    }
+                    // Remove sensitive data from response
+                    foreach(Connection connection in person.Connections)
+                    {
+                        connection.AccessToken = null;
+                        connection.Parameters = null;
+                    }
                 }
             }
 
@@ -46,13 +52,19 @@ namespace hoppa.Service.Controllers
         {
             var person = await _personRepository.GetPerson(key);
             
-            try
-            {
-                person.Accounts.AddRange(BunqAccount.GetAccounts(person));
-            }
-            catch
-            {
-
+            if(person.Connections != null)
+                {
+                // Handle bunq accounts
+                if(person.Connections.FirstOrDefault(c => c.Type == "bunq") != null)
+                {
+                    person.Accounts.AddRange(BunqAccount.GetAccounts(person));
+                }
+                // Remove sensitive data from response
+                foreach(Connection connection in person.Connections)
+                {
+                    connection.AccessToken = null;
+                    connection.Parameters = null;
+                }
             }
 
             return person ?? new Person();
@@ -97,13 +109,19 @@ namespace hoppa.Service.Controllers
 
             var person = await _personRepository.GetPerson(userGuid);
 
-            try
+            if(person.Connections != null)
             {
-                person.Accounts.AddRange(BunqAccount.GetAccounts(person));
-            }
-            catch
-            {
-
+                // Handle bunq accounts
+                if(person.Connections.FirstOrDefault(c => c.Type == "bunq") != null)
+                {
+                    person.Accounts.AddRange(BunqAccount.GetAccounts(person));
+                }
+                // Remove sensitive data from response
+                foreach(Connection connection in person.Connections)
+                {
+                    connection.AccessToken = null;
+                    connection.Parameters = null;
+                }
             }
     
             return person ?? new Person();

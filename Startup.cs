@@ -62,12 +62,6 @@ namespace hoppa.Service
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IOptions<Configuration> settings)
         {
-            if (!(File.Exists(@"bunq.conf")))
-            {
-                Intergrations.bunq.Connection.Register(env, settings.Value.Service.Intergrations.bunq.apiKey);
-            }
-            Intergrations.bunq.Connection.Initialize();
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -99,7 +93,10 @@ namespace hoppa.Service
             builder.EntitySet<Account>("Accounts");
             builder.Singleton<Account>("Account");
             builder.EntitySet<Connection>("Connections");
-            builder.EntitySet<Rule>("Rules");          
+            builder.EntitySet<Rule>("Rules");
+
+            // Splitwise groups intergration.
+            builder.EntitySet<hoppa.Service.Intergrations.splitwise.Group>("Splitwise");    
     
             return builder.GetEdmModel();
         }
