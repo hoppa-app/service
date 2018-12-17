@@ -38,7 +38,6 @@ namespace hoppa.Service.Controllers
                     // Remove sensitive data from response
                     foreach(Connection connection in person.Connections)
                     {
-                        connection.AccessToken = null;
                         connection.Parameters = null;
                     }
                 }
@@ -62,7 +61,6 @@ namespace hoppa.Service.Controllers
                 // Remove sensitive data from response
                 foreach(Connection connection in person.Connections)
                 {
-                    connection.AccessToken = null;
                     connection.Parameters = null;
                 }
             }
@@ -120,7 +118,6 @@ namespace hoppa.Service.Controllers
                 // Remove sensitive data from response
                 foreach(Connection connection in person.Connections)
                 {
-                    connection.AccessToken = null;
                     connection.Parameters = null;
                 }
             }

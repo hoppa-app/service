@@ -45,7 +45,7 @@ namespace hoppa.Service.Controllers
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
                         "Bearer", 
-                        splitwiseConnection.AccessToken
+                        (string)splitwiseConnection.Parameters["AccessToken"]
                     );
 
                     //Get personal user id

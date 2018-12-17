@@ -1,19 +1,16 @@
-﻿using System;
-using Bunq.Sdk.Context;
+﻿using Bunq.Sdk.Context;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
 
-using hoppa.Service;
-
 namespace hoppa.Service.Intergrations.bunq
 {
-    public class Register
+    public class Context
     {
         public string bunqContext { get; }
-        public Register(IHostingEnvironment env, string apiKey)       
+        public Context(IHostingEnvironment env, string apiKey)       
         {
             if (env.IsDevelopment())
             {
