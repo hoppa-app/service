@@ -107,21 +107,27 @@ namespace hoppa.Service.Controllers
             //string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
 
             var person = await _personRepository.GetPerson(userGuid);
-        
-            if(person.Connections != null)
-            {
-                // Handle bunq accounts
-                if(person.Connections.FirstOrDefault(c => c.Type == "bunq") != null)
+            
+            try{
+                if(person.Connections != null)
                 {
-                    person.Accounts.AddRange(BunqAccount.GetAccounts(person));
-                }
-                // Remove sensitive data from response
-                foreach(Connection connection in person.Connections)
-                {
-                    connection.Parameters = null;
+                    // Handle bunq accounts
+                    if(person.Connections.FirstOrDefault(c => c.Type == "bunq") != null)
+                    {
+                        person.Accounts.AddRange(BunqAccount.GetAccounts(person));
+                    }
+                    // Remove sensitive data from response
+                    foreach(Connection connection in person.Connections)
+                    {
+                        connection.Parameters = null;
+                    }
                 }
             }
-    
+            catch
+            {
+
+            }
+
             return person ?? new Person();
         }
 
