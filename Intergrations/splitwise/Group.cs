@@ -1,17 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-using System.Text.RegularExpressions;
-using Bunq.Sdk.Context;
-using Bunq.Sdk.Model.Generated.Endpoint;
-
-using System.Threading.Tasks;
-
-using hoppa.Service.Interfaces;
-using hoppa.Service.Model;
-
-namespace hoppa.Service.Intergrations.splitwise
+namespace hoppa.Service.Intergrations.Splitwise
 {
     public class Group
     {

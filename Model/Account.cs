@@ -15,6 +15,7 @@ namespace hoppa.Service.Model
         public string AccessRights { get; set; } = string.Empty;
 
         public string Description { get; set; }
+        public double Balance { get; set; }
     }
 
     public class OtherAccount : Account

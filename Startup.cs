@@ -91,6 +91,13 @@ namespace hoppa.Service
                 b.MapODataServiceRoute("regular", "api/v1.0", GetEntitySets());
                 b.EnableDependencyInjection();
             });
+
+            // Save current settings
+            hoppa.Service.Core.Configuration.Current = settings.Value;
+            
+            // Add Tasks
+            Task.Run(() => hoppa.Service.Intergrations.Rabobank.LifeCycle.ValidateAccessToken());
+            Task.Run(() => hoppa.Service.Intergrations.Rabobank.LifeCycle.ValidateConsent());
         }
 
         private static IEdmModel GetEntitySets()
@@ -100,12 +107,11 @@ namespace hoppa.Service
             builder.EntitySet<Person>("People");
             builder.Singleton<Person>("Person");
             builder.EntitySet<Account>("Accounts");
-            builder.Singleton<Account>("Account");
             builder.EntitySet<Connection>("Connections");
             builder.EntitySet<Rule>("Rules");
 
             // Splitwise groups intergration.
-            builder.EntitySet<hoppa.Service.Intergrations.splitwise.Group>("Splitwise");    
+            builder.EntitySet<hoppa.Service.Intergrations.Splitwise.Group>("Splitwise");    
     
             return builder.GetEdmModel();
         }

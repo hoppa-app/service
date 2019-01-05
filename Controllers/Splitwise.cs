@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
 using hoppa.Service.Interfaces;
-using hoppa.Service.Intergrations.splitwise;
+using hoppa.Service.Intergrations.Splitwise;
 
 namespace hoppa.Service.Controllers
 {
@@ -39,13 +39,13 @@ namespace hoppa.Service.Controllers
 
             if(person.Connections != null)
             {
-                var splitwiseConnections = person.Connections.FindAll(c => c.Type == "splitwise");
+                var connections = person.Connections.FindAll(c => c.Type == "splitwise");
 
-                foreach(var splitwiseConnection in splitwiseConnections)
+                foreach(var connection in connections)
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
                         "Bearer", 
-                        (string)splitwiseConnection.Parameters["AccessToken"]
+                        (string)connection.Parameters["AccessToken"]
                     );
 
                     //Get personal user id

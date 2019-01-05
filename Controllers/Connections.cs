@@ -1,24 +1,17 @@
-using System;
+using System.Collections.Generic;
 using System.Linq;
+
 using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 
-using Microsoft.Extensions.Options;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 
-using Bunq.Sdk.Context;
-using Bunq.Sdk.Model.Generated.Endpoint;
-
-using System.Threading.Tasks;
-using System.Collections.Generic;
-
+using hoppa.Service.Core;
 using hoppa.Service.Interfaces;
 using hoppa.Service.Model;
-using hoppa.Service.Core;
+
 
 using hoppa.Service.Intergrations.bunq;
 
@@ -29,35 +22,78 @@ namespace hoppa.Service.Controllers
     {
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly IPersonRepository _personRepository;
-        private readonly IOptions<Configuration> _settings;
 
-        public ConnectionsController(IPersonRepository personRepository, IHostingEnvironment hostingEnvironment, IOptions<Configuration> settings)
+        public ConnectionsController(IPersonRepository personRepository, IHostingEnvironment hostingEnvironment)
         {
             _personRepository = personRepository;
             _hostingEnvironment = hostingEnvironment;
-            _settings = settings;
         }
         
         [EnableQuery]
-        public async Task<IEnumerable<Connection>> Get()
+        public IActionResult Get()
         {
             string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
-            //string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
-            
-            var person = await _personRepository.GetPerson(userGuid);
-            
-            if(person.Connections != null)
+
+            Person person = _personRepository.GetPerson(userGuid).Result;
+
+            if(person != null)
             {
-                foreach(Connection connection in person.Connections)
+                if(person.Connections != null)
                 {
-                    // Remove sensitive data from response
-                    connection.Parameters = null;
+                    foreach(Connection connection in person.Connections)
+                    {
+                        // Remove sensitive data from response
+                        connection.Parameters = null;
+                    }
+                    return Ok(person.Connections);
                 }
-                return person.Connections;
+                else
+                {
+                    return NotFound();
+                }
             }
             else
             {
-                return new List<Connection>();
+                return BadRequest();
+            }
+        }
+
+        [EnableQuery]
+        public IActionResult Get(string key)
+        {
+            string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
+            
+            var person = _personRepository.GetPerson(userGuid).Result;
+
+            if(person != null)
+            {
+                if(person.Connections != null)
+                {
+                    foreach(Connection connectionDetails in person.Connections)
+                    {
+                        // Remove sensitive data from response
+                        connectionDetails.Parameters = null;
+                    }
+
+                    Connection connection = person.Connections.FirstOrDefault(a => a.Guid == key);
+                    
+                    if(connection != null)
+                    {
+                        return Ok(connection);
+                    }
+                    else
+                    {
+                        return NotFound();
+                    }
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            else
+            {
+                return BadRequest();
             }
         }
 
@@ -65,141 +101,177 @@ namespace hoppa.Service.Controllers
         public IActionResult Post([FromBody] Registration registration)
         {
             string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
-            //string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
 
-            var client = new HttpClient();
-            string accessToken = null;
+            Person person = (_personRepository.GetPerson(userGuid)).Result;
 
-            Connection connection = new Connection();
-            connection.Guid = Guid.NewGuid().ToString();
-            
-            var person = (_personRepository.GetPerson(userGuid)).Result;
-
-            switch (registration.Type)
+            if(person != null)
             {
-                case "bunq":
-                    connection.Type = registration.Type;
+                JObject tokens;
 
-                    // Try to get AccessToken
-                    try
-                    {
-                        //Authentication Headers
-                        var pairs = new List<KeyValuePair<string, string>>
-                        {
-                            new KeyValuePair<string, string>("X-Bunq-Client-Request-Id", Guid.NewGuid().ToString())
-                        };
-                        var httpContent = new FormUrlEncodedContent(pairs);
+                Connection connection = null;
                         
-                        string url = String.Format(
-                            "https://api-oauth.sandbox.bunq.com/v1/token?grant_type=authorization_code&code={0}&redirect_uri={1}&client_id={2}&client_secret={3}",
-                            registration.Code,
-                            _settings.Value.Service.Intergrations.bunq.RedirectUri,
-                            _settings.Value.Service.Intergrations.bunq.ClientId,
-                            _settings.Value.Service.Intergrations.bunq.ClientSecret
-                        );
-                        //Get Access Token of the authorized user
-                        Console.WriteLine(url);
-                        accessToken = (string)JObject.Parse((client.PostAsync(url, httpContent).Result).Content.ReadAsStringAsync().Result)["access_token"];
-                    }
-                    catch
-                    {
-                        return BadRequest();
-                    }
+                switch (registration.Type)
+                {
+                    case "bunq":
 
-                    // Register and set bunqContext
-                    string apiConfig = (new Context(_hostingEnvironment, accessToken)).bunqContext;
-                    
-                    connection.Parameters = new Dictionary<string, object>
-                    {
-                        {"bunqContext", apiConfig }
-                    };
-                    
-                    // Gather connection details
-                    var apiContext = ApiContext.FromJson(apiConfig);
-                    BunqContext.LoadApiContext(apiContext);
-
-                    connection.ExternalId = BunqContext.UserContext.UserId;
-                    break;
-                case "splitwise":
-                    connection.Type = registration.Type;
-
-                    // Try to get AccessToken
-                    try
-                    {
-                        //Authentication Headers
-                        var pairs = new List<KeyValuePair<string, string>>
+                        tokens = Intergrations.bunq.Connnection.GetTokens(registration.Code);
+                        
+                        if((string)tokens["access_token"] != null)
                         {
-                            new KeyValuePair<string, string>("grant_type", "authorization_code"),
-                            new KeyValuePair<string, string>("client_id", _settings.Value.Service.Intergrations.Splitwise.ClientId),
-                            new KeyValuePair<string, string>("client_secret", _settings.Value.Service.Intergrations.Splitwise.ClientSecret),
-                            new KeyValuePair<string, string>("redirect_uri", _settings.Value.Service.Intergrations.Splitwise.RedirectUri),
-                            new KeyValuePair<string, string>("code", registration.Code)
-                        };
-                        var httpContent = new FormUrlEncodedContent(pairs);
-
-                        //Get Access Token of the authorized user
-                        accessToken = (string)JObject.Parse((client.PostAsync("https://secure.splitwise.com/oauth/token", httpContent).Result).Content.ReadAsStringAsync().Result)["access_token"];
-                    }
-                    catch
-                    {
+                            connection = new Intergrations.bunq.Connnection(_hostingEnvironment, tokens);
+                        }
+                        else
+                        {
+                            connection = new Intergrations.bunq.Connnection(_hostingEnvironment, registration.Code);
+                        }
+                        if(connection == null)
+                        {
+                            return BadRequest();
+                        }
+                        
+                        break;
+                    case "rabobank":
+                        
+                        tokens = Intergrations.Rabobank.Connnection.GetTokens(registration.Code);
+                        
+                        if((string)tokens["access_token"] != null)
+                        {
+                            connection = new Intergrations.Rabobank.Connnection(tokens);
+                        }
+                        else
+                        {
+                            return BadRequest();
+                        }
+                        
+                        break;
+                    case "splitwise":
+                        
+                        tokens = Intergrations.Splitwise.Connnection.GetTokens(registration.Code);
+                        
+                        if((string)tokens["access_token"] != null)
+                        {
+                            connection = new Intergrations.Splitwise.Connnection(tokens);
+                        }
+                        else
+                        {
+                            return BadRequest();
+                        }
+                        
+                        break;
+                    default:
                         return BadRequest();
-                    }
-                    // Set AccessToken
-                    connection.Parameters = new Dictionary<string, object>
-                    {
-                        {"AccessToken", accessToken }
-                    };
+                }
 
-                    // Gather connection details
+                connection.Guid = System.Guid.NewGuid().ToString();
 
-                    //Set splitwise AccessToken
-                    client = new HttpClient()
-                    {
-                        BaseAddress = new Uri("https://secure.splitwise.com/api/v3.0/")
-                    };
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", (string)connection.Parameters["AccessToken"]);
+                if(person.Connections == null)
+                {
+                    person.Connections = new List<Connection>();
+                }
 
-                    //Get user details of authorized user at Splitwise
-                    var connectedUser = JObject.Parse((client.GetAsync("get_current_user").Result).Content.ReadAsStringAsync().Result)["user"];
+                person.Connections.Add(connection);
+            
+                _personRepository.UpdatePerson(userGuid, person);
 
-                    connection.ExternalId = (int)connectedUser["id"];
-                    connection.DisplayName = (string)connectedUser["first_name"] + " " + connectedUser["last_name"];
-                    connection.UserName = (string)connectedUser["email"];
-                    break;
-                default:
-                break;
+                // Remove sensitive data from response
+                connection.Parameters = null;
+
+                return Created(connection);
             }
-
-            if(person.Connections == null)
+            else
             {
-                person.Connections = new List<Connection>();
+                return BadRequest();
             }
+        }
+        public IActionResult Patch(string key, [FromBody] Registration registration)
+        {
+            string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
 
-            person.Connections.Add(connection);
-        
-            _personRepository.UpdatePerson(userGuid, person);
+            Person person = (_personRepository.GetPerson(userGuid)).Result;
 
-            // Remove sensitive data from response
-            connection.Parameters = null;
+            if(person != null)
+            {
+                if(person.Connections != null)
+                {
+                    JObject tokens;
 
-            return Created(connection);
+                    Connection connection = person.Connections.FirstOrDefault(a => a.Guid == key);
+
+                    if(connection != null)
+                    {
+                        switch (registration.Type)
+                        {
+                            case "rabobank":
+                                tokens = Intergrations.Rabobank.Connnection.GetTokens(registration.Code);
+                        
+                                if((string)tokens["access_token"] != null)
+                                {
+                                    connection = new Intergrations.Rabobank.Connnection(tokens);
+                                }
+                                else
+                                {
+                                    return BadRequest();
+                                }
+                                break;
+                            default:
+                                return BadRequest();
+                        }
+
+                        _personRepository.UpdatePerson(userGuid, person);
+
+                        return Updated(connection);
+                    }
+                    else
+                    {
+                        return NotFound();
+                    }
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
 
         [EnableQuery]
         public IActionResult Delete(string key)
         {
             string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
-            //string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
             
-            var person = (_personRepository.GetPerson(userGuid)).Result;
+            Person person = (_personRepository.GetPerson(userGuid)).Result;
 
-            var connection = person.Connections.FirstOrDefault(a => a.Guid == key); 
-            
-            person.Connections.Remove(connection);
+            if(person != null)
+            {
+                if(person.Connections != null)
+                {
+                    Connection connection = person.Connections.FirstOrDefault(a => a.Guid == key); 
 
-            _personRepository.UpdatePerson(userGuid, person);
+                    if(connection != null)
+                    {
+                        person.Connections.Remove(connection);
 
-            return Ok();
+                        _personRepository.UpdatePerson(userGuid, person);
+
+                        return NoContent();
+                    }
+                    else
+                    {
+                        return NotFound();
+                    }
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
     }
 }

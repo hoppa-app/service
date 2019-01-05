@@ -10,18 +10,18 @@ namespace hoppa.Service.Data
     {
         private readonly IMongoDatabase _database = null;
 
-        public PersonContext(IOptions<Configuration> settings)
+        public PersonContext()
         {
-            var client = new MongoClient(settings.Value.Service.MongoDB.Url);
+            var client = new MongoClient(Configuration.Current.Service.MongoDB.Url);
             if (client != null)
-                _database = client.GetDatabase(settings.Value.Service.MongoDB.Database);
+                _database = client.GetDatabase(Configuration.Current.Service.MongoDB.Database);
         }
 
         public IMongoCollection<Person> People
         {
             get
             {
-                return _database.GetCollection<Person>("people");
+                return _database.GetCollection<Person>(Configuration.Current.Service.MongoDB.Collection);
             }
         }
     }

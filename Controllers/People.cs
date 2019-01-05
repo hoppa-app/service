@@ -1,14 +1,15 @@
-using System;
+using System.Collections.Generic;
 using System.Linq;
+
 using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 
+using hoppa.Service.Core;
 using hoppa.Service.Interfaces;
-using hoppa.Service.Model;
 using hoppa.Service.Intergrations.bunq;
+using hoppa.Service.Intergrations.Rabobank;
+using hoppa.Service.Model;
 
 namespace hoppa.Service.Controllers
 {
@@ -23,17 +24,70 @@ namespace hoppa.Service.Controllers
         }
 
         [EnableQuery]
-        public async Task<IEnumerable<Person>>  Get()
+        public IActionResult Get()
         {
-            var people = await _personRepository.GetAllPeople();
-            foreach(Person person in people)
+            var people = _personRepository.GetAllPeople().Result;
+
+            if(people != null)
             {
-                if(person.Connections != null)
+                foreach(Person person in people)
                 {
+                    if(person.Accounts == null)
+                    {
+                        person.Accounts = new List<Account>();
+                    }
+
+                    if(person.Connections != null)
+                    {
+                        // Handle bunq accounts
+                        if(person.Connections.FirstOrDefault(c => c.Type == "bunq") != null)
+                        {
+                            person.Accounts.AddRange(bunq.GetAccounts(person));
+                        }
+                        // Handle Rabobank accounts
+                        if(person.Connections.FirstOrDefault(c => c.Type == "rabobank") != null)
+                        {
+                            person.Accounts.AddRange(Rabobank.GetAccounts(person));
+                        }
+                        // Remove sensitive data from response
+                        foreach(Connection connection in person.Connections)
+                        {
+                            connection.Parameters = null;
+                        }
+                    }
+                }
+
+                return Ok(people);
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
+
+        [EnableQuery]
+        public IActionResult Get(string key)
+        {
+            Person person = _personRepository.GetPerson(key).Result;
+
+            if(person != null)
+            {
+                if(person.Accounts == null)
+                {
+                    person.Accounts = new List<Account>();
+                }
+
+                if(person.Connections != null)
+                    {
                     // Handle bunq accounts
                     if(person.Connections.FirstOrDefault(c => c.Type == "bunq") != null)
                     {
-                        person.Accounts.AddRange(BunqAccount.GetAccounts(person));
+                        person.Accounts.AddRange(bunq.GetAccounts(person));
+                    }
+                    // Handle Rabobank accounts
+                    if(person.Connections.FirstOrDefault(c => c.Type == "rabobank") != null)
+                    {
+                        person.Accounts.AddRange(Rabobank.GetAccounts(person));
                     }
                     // Remove sensitive data from response
                     foreach(Connection connection in person.Connections)
@@ -41,52 +95,71 @@ namespace hoppa.Service.Controllers
                         connection.Parameters = null;
                     }
                 }
+                return Ok(person);
             }
-
-            return people;
-        }
-
-        [EnableQuery]
-        public async Task<Person>  Get(string key)
-        {
-            var person = await _personRepository.GetPerson(key);
-            
-            if(person.Connections != null)
-                {
-                // Handle bunq accounts
-                if(person.Connections.FirstOrDefault(c => c.Type == "bunq") != null)
-                {
-                    person.Accounts.AddRange(BunqAccount.GetAccounts(person));
-                }
-                // Remove sensitive data from response
-                foreach(Connection connection in person.Connections)
-                {
-                    connection.Parameters = null;
-                }
+            else
+            {
+                return NotFound();
             }
-
-            return person ?? new Person();
         }
 
         [EnableQuery]
         public IActionResult Post([FromBody] Person person)
         {
             string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
-            //string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
+
+            if(_personRepository.GetPerson(userGuid).Result == null)
+            {
+                person.Guid = userGuid;
+
+                _personRepository.AddPerson(person);
+
+                return Created(person);
+            }
+            else
+            {
+                return Conflict();
+            }
             
-            person.Guid = userGuid;
+ 
+        }
 
-            _personRepository.AddPerson(person);
+        [EnableQuery]
+        public IActionResult Patch(string key, [FromBody] Delta<Person> delta)
+        {
+            string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
+            
+            Person person = _personRepository.GetPerson(key).Result;
 
-            return Created(person);
+            if(person != null)
+            {
+                delta.Patch(person);
+            
+                _personRepository.UpdatePerson(key, person);
+
+                return Updated(person);
+            }
+            else
+            {
+                return NotFound();
+            }
         }
 
         [EnableQuery]
         public IActionResult Delete(string key)
         {
-            _personRepository.RemovePerson(key);
+            string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
 
-            return Ok();
+            if(key == userGuid)
+            {
+                _personRepository.RemovePerson(key);
+
+                return NoContent();
+            }
+            else
+            {
+                return Conflict();
+            }
         }
     }
 
@@ -101,20 +174,29 @@ namespace hoppa.Service.Controllers
         }
 
         [EnableQuery]
-        public async Task<Person> Get()
+        public IActionResult Get()
         {
             string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
-            //string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
 
-            var person = await _personRepository.GetPerson(userGuid);
+            Person person = _personRepository.GetPerson(userGuid).Result;
             
-            try{
+            if(person != null)
+            {
                 if(person.Connections != null)
                 {
+                    if(person.Accounts == null)
+                    {
+                        person.Accounts = new List<Account>();
+                    }
                     // Handle bunq accounts
                     if(person.Connections.FirstOrDefault(c => c.Type == "bunq") != null)
                     {
-                        person.Accounts.AddRange(BunqAccount.GetAccounts(person));
+                        person.Accounts.AddRange(bunq.GetAccounts(person));
+                    }
+                    // Handle Rabobank accounts
+                    if(person.Connections.FirstOrDefault(c => c.Type == "rabobank") != null)
+                    {
+                        person.Accounts.AddRange(Rabobank.GetAccounts(person));
                     }
                     // Remove sensitive data from response
                     foreach(Connection connection in person.Connections)
@@ -122,24 +204,34 @@ namespace hoppa.Service.Controllers
                         connection.Parameters = null;
                     }
                 }
+
+                return Ok(person);
             }
-            catch
+            else
             {
-
+                return NotFound();
             }
-
-            return person ?? new Person();
         }
 
         [EnableQuery]
-        public IActionResult Patch([FromBody] Person person)
+        public IActionResult Patch([FromBody] Delta<Person> delta)
         {
             string userGuid = (User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier"))?.Value;
-            //string userGuid = "6b9e605f-a484-4ecd-8e4b-9df459ef9ba9";
 
-            _personRepository.UpdatePerson(userGuid, person.DisplayName);
+            Person person = _personRepository.GetPerson(userGuid).Result;
 
-            return Ok();
+            if(person != null)
+            {
+                delta.Patch(person);
+
+                _personRepository.UpdatePerson(userGuid, person);
+
+                return Updated(person);
+            }
+            else
+            {
+                return NotFound();
+            }
         }
     }
 }

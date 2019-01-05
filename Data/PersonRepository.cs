@@ -17,9 +17,9 @@ namespace hoppa.Service.Data
     {
         private readonly PersonContext _context = null;
 
-        public PersonRepository(IOptions<Configuration> settings)
+        public PersonRepository()
         {
-            _context = new PersonContext(settings);
+            _context = new PersonContext();
         }
 
         public async Task<IEnumerable<Person>> GetAllPeople()
