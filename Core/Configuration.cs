@@ -34,6 +34,8 @@ namespace hoppa.Service.Core
         public OAuth2 bunq { get; set; } = new OAuth2();
 
         public RabobankOAuth2 Rabobank { get; set; } = new RabobankOAuth2();
+
+        public INGOAuth2 ING { get; set; } = new INGOAuth2();
     }
 
     public class OAuth2
@@ -45,6 +47,13 @@ namespace hoppa.Service.Core
     }
 
     public class RabobankOAuth2 : OAuth2
+    {
+        public string ApiUri { get; set; }
+
+        public Certificates Certificates { get; set; } = new Certificates();
+    }
+
+    public class INGOAuth2 : OAuth2
     {
         public string ApiUri { get; set; }
 

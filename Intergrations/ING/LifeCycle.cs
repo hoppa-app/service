@@ -15,7 +15,7 @@ using hoppa.Service.Data;
 using hoppa.Service.Model;
 using hoppa.Service.Core;
 
-namespace hoppa.Service.Intergrations.Rabobank
+namespace hoppa.Service.Intergrations.ING
 {
     public class LifeCycle
     {
@@ -35,10 +35,10 @@ namespace hoppa.Service.Intergrations.Rabobank
                     if(person.Connections != null)
                     {
                         Support.WriteToConsole("info", FunctionName, "<Person> (" + person.Guid + ") => Has List<Connection>");
-                        List<Connection> connections = person.Connections.FindAll(c => c.Type == "rabobank");
+                        List<Connection> connections = person.Connections.FindAll(c => c.Type == "ing");
                         if(connections.Count > 0)
                         {
-                            Support.WriteToConsole("info", FunctionName, "<Person> (" + person.Guid + ") => List<Connection> => Contains Type \"Rabobank\"");
+                            Support.WriteToConsole("info", FunctionName, "<Person> (" + person.Guid + ") => List<Connection> => Contains Type \"ING\"");
                             foreach(Connection connection in connections)
                             {
                                 var consentedOn = Support.ConvertTimestamp((double)connection.Parameters["ConsentedOn"]);
@@ -53,20 +53,37 @@ namespace hoppa.Service.Intergrations.Rabobank
                                    
                                     var client = new SendGridClient(Configuration.Current.Service.SendGrid.ApiKey);
                                     var from = new EmailAddress("noreply@hoppa.app", "hoppa.app");
-                                    var subject = "Your Rabobank consent is about to expire!";
+                                    var subject = "Your ING consent is about to expire!";
                                     var to = new EmailAddress(person.EmailAddress, person.DisplayName);
+
+                                    List<KeyValuePair<string, string>> parameters = null;
+                                    JObject response = null;
+
+                                    // Get Server AccessToken
+                                    parameters = new List<KeyValuePair<string, string>>
+                                    {
+                                        new KeyValuePair<string, string>("grant_type", "client_credentials"),
+                                        new KeyValuePair<string, string>("scope", "create_order granting payment-requests payment-requests:view payment-requests:create payment-requests:close virtual-ledger-accounts:fund-reservation:create virtual-ledger-accounts:fund-reservation:delete virtual-ledger-accounts:balance:view"),
+                                    };
+
+                                    response = Client.Post("/oauth2/token", parameters);
+                                    string ServerAccessToken = (string)response["access_token"];
+
+                                    // Get Authorization URL
+                                    response = Client.Get("/oauth2/authorization-server-url?scope=view_balance&country_code=nl", ServerAccessToken);
+
                                     var plainTextContent = String.Format(
-                                        "Renew consent via this link: {0}/oauth2/authorize?response_type=code&client_id={1}&scope=AIS-Transactions-v2%20AIS-Balance-v2%20PaymentRequest&redirect_uri={2}&state={3}", 
-                                        Configuration.Current.Service.Intergrations.Rabobank.ApiUri,
-                                        Configuration.Current.Service.Intergrations.Rabobank.ClientId,
-                                        Configuration.Current.Service.Intergrations.Rabobank.RedirectUri,
+                                        "Renew consent via this link: {0}/response_type=code&client_id={1}&scope=view_balance&redirect_uri={2}&state={3}", 
+                                        (string)response["location"],
+                                        Configuration.Current.Service.Intergrations.ING.ClientId,
+                                        Configuration.Current.Service.Intergrations.ING.RedirectUri,
                                         connection.Guid
                                     );
                                     var htmlContent = String.Format(
-                                        "Renew consent via this <a href=\"{0}/oauth2/authorize?response_type=code&client_id={1}&scope=AIS-Transactions-v2%20AIS-Balance-v2%20PaymentRequest&redirect_uri={2}&state={3}\">link</a>.<br/>{0}/oauth2/authorize?response_type=code&client_id={1}&scope=AIS-Transactions-v2%20AIS-Balance-v2%20PaymentRequest&redirect_uri={2}&state={3}", 
-                                        Configuration.Current.Service.Intergrations.Rabobank.ApiUri,
-                                        Configuration.Current.Service.Intergrations.Rabobank.ClientId,
-                                        Configuration.Current.Service.Intergrations.Rabobank.RedirectUri,
+                                        "Renew consent via this <a href=\"{0}/response_type=code&client_id={1}&scope=view_balance&redirect_uri={2}&state={3}\">link</a>.<br/>{0}/response_type=code&client_id={1}&scope=view_balance&redirect_uri={2}&state={3}", 
+                                        (string)response["location"],
+                                        Configuration.Current.Service.Intergrations.ING.ClientId,
+                                        Configuration.Current.Service.Intergrations.ING.RedirectUri,
                                         connection.Guid
                                     );
 
@@ -112,10 +129,10 @@ namespace hoppa.Service.Intergrations.Rabobank
                     if(person.Connections != null)
                     {
                         Support.WriteToConsole("info", FunctionName, "<Person> (" + person.Guid + ") => Has List<Connection>");
-                        List<Connection> connections = person.Connections.FindAll(c => c.Type == "rabobank");
+                        List<Connection> connections = person.Connections.FindAll(c => c.Type == "ing");
                         if(connections.Count > 0)
                         {
-                            Support.WriteToConsole("info", FunctionName, "<Person> (" + person.Guid + ") => List<Connection> => Contains Type \"Rabobank\"");
+                            Support.WriteToConsole("info", FunctionName, "<Person> (" + person.Guid + ") => List<Connection> => Contains Type \"ING\"");
                             foreach(Connection connection in connections)
                             {
                                 var validUntil = Support.ConvertTimestamp((double)connection.Parameters["Expiration"]);        
@@ -123,40 +140,22 @@ namespace hoppa.Service.Intergrations.Rabobank
                                 {
                                     Support.WriteToConsole("warn", FunctionName, "<Person> (" + person.Guid + ") => <Connection> (" + connection.Guid + ") => Is Expired!");
                                     Support.WriteToConsole("info", FunctionName, "<Person> (" + person.Guid + ") => <Connection> (" + connection.Guid + ") => Start Refresh...");
-                                    var client = new HttpClient();
-
-                                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue
-                                    (
-                                        "Basic", Convert.ToBase64String(
-                                            Encoding.UTF8.GetBytes(
-                                                String.Format(
-                                                    "{0}:{1}", 
-                                                    Configuration.Current.Service.Intergrations.Rabobank.ClientId,
-                                                    Configuration.Current.Service.Intergrations.Rabobank.ClientSecret
-                                                )
-                                            )
-                                        )
-                                    );
-
-                                    var pairs = new List<KeyValuePair<string, string>>
-                                    {
-                                        new KeyValuePair<string, string>("grant_type", "refresh_token"),
-                                        new KeyValuePair<string, string>("refresh_token", (string)connection.Parameters["RefreshToken"])
-                                    };
                                     
-                                    var httpContent = new FormUrlEncodedContent(pairs);
-
-                                    //Get Access Token  and new Refresh for the authorized user
-                                    JObject response = JObject.Parse((client.PostAsync(Configuration.Current.Service.Intergrations.Rabobank.ApiUri + "/oauth2/token", httpContent).Result).Content.ReadAsStringAsync().Result);
-                                    if((string)response["access_token"] != null)
+                                    // TODO: No refresh token at the moment.
+                                    string code = "694d6ca9-1310-4d83-8dbb-e819c1ee6b80";
+                                    
+                                    JObject tokens = Intergrations.ING.Connnection.GetTokens(code);
+                        
+                                    if((string)tokens["access_token"] != null)
                                     {
                                         Support.WriteToConsole("info", FunctionName, "<Person> (" + person.Guid + ") => <Connection> (" + connection.Guid + ") => Refreshed!");
+                                        int concentedOn = (int)connection.Parameters["ConsentedOn"];
                                         connection.Parameters = new Dictionary<string, object>
                                         {
-                                            {"AccessToken", (string)response["access_token"] },
+                                            {"AccessToken", (string)tokens["access_token"] },
                                             {"Expiration", Support.ConvertTimestamp(DateTime.UtcNow.AddHours(1))},
-                                            {"RefreshToken", (string)response["refresh_token"] },
-                                            {"ConsentedOn", (double)response["consented_on"] }
+                                            {"RefreshToken", (string)tokens["refresh_token"] },
+                                            {"ConsentedOn", concentedOn }
                                         };
                                     }
                                     else
@@ -173,7 +172,7 @@ namespace hoppa.Service.Intergrations.Rabobank
                         }
                         else
                         {
-                            Support.WriteToConsole("info", FunctionName, "<Person> (" + person.Guid + ") => List<Connection> => Doesn't contain Type \"Rabobank\"");
+                            Support.WriteToConsole("info", FunctionName, "<Person> (" + person.Guid + ") => List<Connection> => Doesn't contain Type \"ING\"");
                         }
                     }
                     else

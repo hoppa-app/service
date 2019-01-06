@@ -98,6 +98,8 @@ namespace hoppa.Service
             // Add Tasks
             Task.Run(() => hoppa.Service.Intergrations.Rabobank.LifeCycle.ValidateAccessToken());
             Task.Run(() => hoppa.Service.Intergrations.Rabobank.LifeCycle.ValidateConsent());
+            Task.Run(() => hoppa.Service.Intergrations.ING.LifeCycle.ValidateAccessToken());
+            Task.Run(() => hoppa.Service.Intergrations.ING.LifeCycle.ValidateConsent());
         }
 
         private static IEdmModel GetEntitySets()

@@ -17,7 +17,6 @@ namespace hoppa.Service.Intergrations.Rabobank
 {
     public class Headers
     {
-        private static string CurrentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
         private static X509Certificate2 cert = Support.GetCertificate(Configuration.Current.Service.Intergrations.Rabobank.Certificates.Signing.Thumbprint);
         public string Date { get; }
         public string Digest { get; }
@@ -60,7 +59,6 @@ namespace hoppa.Service.Intergrations.Rabobank
     }
     public class Client
     {
-        private static string CurrentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
         private static HttpClient HttpClient()
         {
             X509Certificate2 cert = Support.GetCertificate(Configuration.Current.Service.Intergrations.Rabobank.Certificates.TLS.Thumbprint);

@@ -144,6 +144,20 @@ namespace hoppa.Service.Controllers
                         }
                         
                         break;
+                    case "ing":
+                        
+                        tokens = Intergrations.ING.Connnection.GetTokens(registration.Code);
+                        
+                        if((string)tokens["access_token"] != null)
+                        {
+                            connection = new Intergrations.ING.Connnection(tokens);
+                        }
+                        else
+                        {
+                            return BadRequest();
+                        }
+                        
+                        break;
                     case "splitwise":
                         
                         tokens = Intergrations.Splitwise.Connnection.GetTokens(registration.Code);
@@ -207,6 +221,18 @@ namespace hoppa.Service.Controllers
                                 if((string)tokens["access_token"] != null)
                                 {
                                     connection = new Intergrations.Rabobank.Connnection(tokens);
+                                }
+                                else
+                                {
+                                    return BadRequest();
+                                }
+                                break;
+                            case "ing":
+                                tokens = Intergrations.ING.Connnection.GetTokens(registration.Code);
+                        
+                                if((string)tokens["access_token"] != null)
+                                {
+                                    connection = new Intergrations.ING.Connnection(tokens);
                                 }
                                 else
                                 {

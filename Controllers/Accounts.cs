@@ -9,6 +9,7 @@ using hoppa.Service.Core;
 using hoppa.Service.Interfaces;
 using hoppa.Service.Intergrations.bunq;
 using hoppa.Service.Intergrations.Rabobank;
+using hoppa.Service.Intergrations.ING;
 using hoppa.Service.Model;
 
 namespace hoppa.Service.Controllers
@@ -48,6 +49,11 @@ namespace hoppa.Service.Controllers
                     if(person.Connections.FirstOrDefault(c => c.Type == "rabobank") != null)
                     {
                         person.Accounts.AddRange(Rabobank.GetAccounts(person));
+                    }
+                    // Handle ING accounts
+                    if(person.Connections.FirstOrDefault(c => c.Type == "ing") != null)
+                    {
+                        person.Accounts.AddRange(ING.GetAccounts(person));
                     }
                 }
                 if(person.Accounts.Count > 0)
@@ -91,6 +97,11 @@ namespace hoppa.Service.Controllers
                     if(person.Connections.FirstOrDefault(c => c.Type == "rabobank") != null)
                     {
                         person.Accounts.AddRange(Rabobank.GetAccounts(person));
+                    }
+                    // Handle ING accounts
+                    if(person.Connections.FirstOrDefault(c => c.Type == "ing") != null)
+                    {
+                        person.Accounts.AddRange(ING.GetAccounts(person));
                     }
                 }
                 
@@ -141,6 +152,11 @@ namespace hoppa.Service.Controllers
                     {
                         connectedAccounts.AddRange(Rabobank.GetAccounts(person));
                     }
+                    // Handle ING accounts
+                    if(person.Connections.FirstOrDefault(c => c.Type == "ing") != null)
+                    {
+                        connectedAccounts.AddRange(ING.GetAccounts(person));
+                    }
                 }
 
                 if(
@@ -186,6 +202,11 @@ namespace hoppa.Service.Controllers
                     if(person.Connections.FirstOrDefault(c => c.Type == "rabobank") != null)
                     {
                         connectedAccounts.AddRange(Rabobank.GetAccounts(person));
+                    }
+                    // Handle ING accounts
+                    if(person.Connections.FirstOrDefault(c => c.Type == "ing") != null)
+                    {
+                        connectedAccounts.AddRange(ING.GetAccounts(person));
                     }
                 }
 

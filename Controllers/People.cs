@@ -9,6 +9,7 @@ using hoppa.Service.Core;
 using hoppa.Service.Interfaces;
 using hoppa.Service.Intergrations.bunq;
 using hoppa.Service.Intergrations.Rabobank;
+using hoppa.Service.Intergrations.ING;
 using hoppa.Service.Model;
 
 namespace hoppa.Service.Controllers
@@ -49,6 +50,11 @@ namespace hoppa.Service.Controllers
                         {
                             person.Accounts.AddRange(Rabobank.GetAccounts(person));
                         }
+                        // Handle ING accounts
+                        if(person.Connections.FirstOrDefault(c => c.Type == "ing") != null)
+                        {
+                            person.Accounts.AddRange(ING.GetAccounts(person));
+                        }
                         // Remove sensitive data from response
                         foreach(Connection connection in person.Connections)
                         {
@@ -88,6 +94,11 @@ namespace hoppa.Service.Controllers
                     if(person.Connections.FirstOrDefault(c => c.Type == "rabobank") != null)
                     {
                         person.Accounts.AddRange(Rabobank.GetAccounts(person));
+                    }
+                    // Handle ING accounts
+                    if(person.Connections.FirstOrDefault(c => c.Type == "ing") != null)
+                    {
+                        person.Accounts.AddRange(ING.GetAccounts(person));
                     }
                     // Remove sensitive data from response
                     foreach(Connection connection in person.Connections)
@@ -197,6 +208,11 @@ namespace hoppa.Service.Controllers
                     if(person.Connections.FirstOrDefault(c => c.Type == "rabobank") != null)
                     {
                         person.Accounts.AddRange(Rabobank.GetAccounts(person));
+                    }
+                    // Handle ING accounts
+                    if(person.Connections.FirstOrDefault(c => c.Type == "ing") != null)
+                    {
+                        person.Accounts.AddRange(ING.GetAccounts(person));
                     }
                     // Remove sensitive data from response
                     foreach(Connection connection in person.Connections)
